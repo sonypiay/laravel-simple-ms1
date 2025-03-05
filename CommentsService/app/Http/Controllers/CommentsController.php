@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class CommentsController extends Controller
 {
@@ -14,9 +15,15 @@ class CommentsController extends Controller
 
     public function store(Request $request)
     {
-        return Comments::create([
+        $comments = Comments::create([
             'post_id' => $request->post_id,
             'message' => $request->message,
         ]);
+
+        Http::post("http://localhost:8080/api/posts/{$comments->post_id}/comments", [
+            'message' => $comments->message,
+        ]);
+
+        return $comments;
     }
 }

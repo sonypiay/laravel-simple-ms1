@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostsResource;
 use Illuminate\Http\Request;
 use App\Models\Posts;
 use Illuminate\Support\Facades\Http;
@@ -10,14 +11,7 @@ class PostController extends Controller
 {
     public function index()
     {
-        $posts = Posts::all();
-
-        foreach( $posts as $post )
-        {
-            $post->comments = Http::get("http://localhost:8081/api/posts/{$post->id}/comments")->json();
-        }
-
-        return $posts;
+        return PostsResource::collection(Posts::all());
     }
 
     public function store(Request $request)
@@ -26,5 +20,20 @@ class PostController extends Controller
             'title' => $request->title,
             'description' => $request->description,
         ]);
+    }
+
+    public function comments(Request $request, $id)
+    {
+        $post = Posts::find($id);
+        $comments = $post->getComments();
+
+        array_push($comments, [
+            'message' => $request->message,
+        ]);
+
+        $post->comments = json_encode($comments);
+        $post->save();
+
+        return $post;
     }
 }
